@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="site.metacoding.humancloud.domain.company.CompanyDao">
+
+	<select id="paging"
+		resultType="site.metacoding.humancloud.dto.PagingDto">
+		SELECT totalCount,
+		totalPage,
+		currentPage,
+		case when currentPage=0 then 1 else 0 end as isFirst,
+		case when currentPage=totalPage-1 then 1 else 0 end as isLast
+		FROM
+		(
+		select count(*) totalCount, ceil(count(*)/20) totalPage, ${page} currentPage, 0
+		isFirst, 0 isLast
+		FROM company
+		) b
+	</select>
+
+	<insert id="save" useGeneratedKeys="true" keyProperty="companyId">
+		INSERT INTO company(company_username, company_password,
+		company_name, company_email, company_phone_number, company_address,
+		company_logo,
+		company_created_at)
+		VALUES(#{companyUsername},
+		#{companyPassword}, #{companyName}, #{companyEmail},
+		#{companyPhoneNumber}, #{companyAddress}, #{companyLogo}, now())
+	</insert>
+
+	<select id="findById" resultType="site.metacoding.humancloud.dto.company.CompanyRespDto$CompanyFindById">
+		SELECT *
+		FROM company
+		WHERE company_id = #{companyId}
+	</select>
+
+	<select id="findAll" resultType="site.metacoding.humancloud.dto.company.CompanyRespDto$CompanyFindAllDto">
+		SELECT company_id, company_name, company_address, company_logo
+		FROM company
+		limit 20 offset #{startNum}
+	</select>
+
+	<update id="update">
+		UPDATE company SET company_password =
+		#{companyPassword}, company_name = #{companyName}, company_email =
+		#{companyEmail},
+		company_phone_number = #{companyPhoneNumber},
+		company_address = #{companyAddress}, company_logo = #{companyLogo}
+		WHERE company_id = #{companyId}
+	</update>
+
+
+	<delete id="deleteById">
+		DELETE
+		FROM company
+		WHERE company_id = #{companyId}
+	</delete>
+
+
+	<select id="findByUsername" resultType="site.metacoding.humancloud.domain.company.Company">
+		SELECT *
+		FROM company
+		WHERE company_username =
+		#{companyUsername}
+	</select>
+
+	<select id="findAllUsername" resultType="site.metacoding.humancloud.domain.company.Company">
+		select t.*
+		from (
+		select company_username  from company
+		union ALL
+		select username
+		from user) t
+		where company_username = #{companyUsername}
+	</select>
+
+</mapper>

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="site.metacoding.humancloud.domain.subscribe.SubscribeDao">
+	<select id="findByCompanyId" resultType="site.metacoding.humancloud.domain.subscribe.Subscribe">
+		select *
+		from subscribe
+		where subscribe_company_id=#{companyId}
+	</select>
+
+	<delete id="deleteByUserCompany">
+		delete
+		from subscribe
+		where subscribe_user_id=#{userId} and subscribe_company_id=#{companyId}
+	</delete>
+
+	<insert id="save">
+		insert into subscribe(subscribe_user_id, subscribe_company_id, subscribe_created_at)
+		values (#{subscribeUserId}, #{subscribeCompanyId}, now())
+	</insert>
+	
+	<select id="findCompanyByUserId" resultType="site.metacoding.humancloud.dto.user.UserRespDto$UserMypageRespDto$SubscribeCompanyDto">
+		select c.company_name, c.company_logo from company c
+		inner join subscribe
+		on c.company_id=subscribe_company_id
+		where subscribe.subscribe_user_id=#{userId}
+	</select>
+
+	<select id="findById" resultType="site.metacoding.humancloud.domain.subscribe.Subscribe">
+		select * from subscribe where subscribe_user_id=#{userId} and subscribe_company_id=#{companyId}
+	</select>
+
+
+	<select id="findAll" resultType="site.metacoding.humancloud.domain.subscribe.Subscribe"></select>
+	<update id="update"></update>
+	<delete id="deleteById"></delete>
+</mapper>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="site.metacoding.humancloud.domain.user.UserDao">
+
+	<insert id="save" useGeneratedKeys="true" keyProperty="userId">
+        insert into user(username, password, name, email, phone_number, created_at)
+        values (#{username}, #{password}, #{name}, #{email}, #{phoneNumber}, now())
+	</insert>
+
+	<update id="update">
+        update user set name=#{name}, password=#{password}, email= #{email}, phone_number=#{phoneNumber}
+        where user_id=#{userId}
+	</update>
+
+	<select id="findAllUsername" resultType="site.metacoding.humancloud.dto.auth.UserFindByAllUsernameDto">
+		select *
+		from (
+				 select company_id id, company_username username, company_password password from company
+				 union ALL
+				 select user_id id, username username, password
+				 from user) t
+		where username=#{username}
+	</select>
+
+	<select id="findByUsername" resultType="site.metacoding.humancloud.dto.user.UserRespDto$UserFindByUsername">
+        select * from user where username=#{username}
+	</select>
+
+
+	<select id="findById" resultType="site.metacoding.humancloud.dto.user.UserRespDto$UserFindById">
+        select * from user where user_id=#{userId}
+	</select>
+
+	<select id="findAll" resultType="site.metacoding.humancloud.domain.user.User">
+        select * from user
+	</select>
+
+	<delete id="deleteById">
+        delete from user where user_id=#{userId}
+	</delete>
+
+
+	<select id="findByRank" resultType="site.metacoding.humancloud.dto.CompanyRankingDto">
+		SELECT RANK() over (ORDER BY COUNT(subscribe_company_id) desc) as ranking, COUNT(subscribe_company_id) likes,  c.company_name name, c.company_logo logo
+		FROM subscribe  s RIGHT OUTER JOIN company c
+		ON s.subscribe_company_id = c.company_id
+		GROUP BY subscribe_company_id
+		HAVING COUNT(subscribe_company_id) > 0
+		ORDER BY ranking
+	</select>
+</mapper>

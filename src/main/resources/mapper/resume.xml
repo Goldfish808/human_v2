@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="site.metacoding.humancloud.domain.resume.ResumeDao">
+
+
+   <select id="findByCategoryName" resultType="site.metacoding.humancloud.dto.resume.ResumeRespDto$ResumeFindAllDto">
+		select r.* from resume r
+		left join category c
+		on r.resume_id=c.category_resume_id
+		where c.category_name=#{categoryName}
+		limit 20 offset #{startNum}
+	</select>
+
+
+   <select id="applyResumeList" resultType="site.metacoding.humancloud.domain.resume.Resume">
+      select resume.* from resume
+      inner join
+          (select apply.* from apply
+          inner join
+              (select recruit.* from recruit
+              inner join company
+              on company.company_id=recruit.recruit_company_id
+              where company_id=#{companyId}) currentCompany
+          on apply.apply_recruit_id=currentCompany.recruit_id) currentComRescruit
+      on resume.resume_id=currentComRescruit.apply_resume_id
+   </select>
+
+   <update id="updateReadCount">
+      update resume set resume_read_count=resume_read_count+1 where resume_id=#{resumeId}
+   </update>
+
+   <select id="paging" resultType="site.metacoding.humancloud.dto.PagingDto">
+		SELECT totalCount,
+		totalPage,
+		currentPage,
+		case when currentPage=0 then 1 else 0 end as isFirst,
+		case when currentPage=totalPage-1 then 1 else 0 end as isLast
+		FROM
+		(
+		select count(*) totalCount, ceil(count(*)/20) totalPage, ${page} currentPage, 0
+		isFirst, 0 isLast
+		FROM resume
+		) b
+	</select>
+   <select id="orderByRecommend" resultType="site.metacoding.humancloud.dto.resume.ResumeRespDto$ResumeFindAllDto">
+      select resume.*, result.count from resume
+      left join
+      (select *, count(*) count
+      from
+      (select c2.* from (select category.*
+      from
+      (select recruit.* from recruit inner join company
+      on company.company_id=recruit.recruit_company_id
+      where company_id=#{companyId}) r
+      inner join category
+      on r.recruit_id=category.category_recruit_id
+      group by category_name) c1
+      join (SELECT * FROM category
+      WHERE category_resume_id is not null) c2
+      on c1.category_name=c2.category_name) list
+      group by category_resume_id) result
+      on resume.resume_id=result.category_resume_id
+      order by count desc 		
+      limit 20 offset #{startNum}
+    </select>
+
+   <select id="findByUserId" resultType="site.metacoding.humancloud.domain.resume.Resume">
+        select r.* from resume r where resume_user_id=#{userId}
+    </select>
+
+   <select id="orderByCreatedAt" resultType="site.metacoding.humancloud.dto.resume.ResumeRespDto$ResumeFindAllDto">
+        select *
+        from resume
+        order by resume_created_at desc 		
+        limit 20 offset #{startNum}
+    </select>
+
+   <select id="orderByEducation" resultType="site.metacoding.humancloud.dto.resume.ResumeRespDto$ResumeFindAllDto">
+        select * from resume
+        order by FIELD(resume_education,  '대학원졸업', '4년제대학졸업', '3년제대학졸업', '2년제대학졸업', '고졸'),  
+        resume_education 		
+        limit 20 offset #{startNum}
+    </select>
+
+   <select id="orderByCareer" resultType="site.metacoding.humancloud.dto.resume.ResumeRespDto$ResumeFindAllDto">
+      select * from resume
+      order by FIELD(resume_career,  '6년이상', '3년이상 ~ 5년미만', '1년이상 ~ 3년미만', '1년미만', '신입'),
+      resume_education 
+      limit 20 offset #{startNum}
+   </select>
+
+   <select id="sumReadCount" resultType="site.metacoding.humancloud.domain.resume.Resume">
+      select sum(resume_read_count) resumeReadCount from resume where resume_user_id=#{userId}
+   </select>
+
+   <select id="findAll" resultType="site.metacoding.humancloud.dto.resume.ResumeRespDto$ResumeFindAllDto">
+      SELECT * FROM resume
+      order by resume_created_at
+		limit 20 offset #{startNum}
+   </select>
+
+   <insert id="save" useGeneratedKeys="true" keyProperty="resumeId">
+      INSERT INTO resume(
+      resume_title, resume_education, resume_career, resume_photo, 
+      resume_link, resume_user_id, resume_read_count, resume_created_at
+      )
+      VALUES(
+      #{resumeTitle}, #{resumeEducation}, #{resumeCareer}, #{resumePhoto},
+      #{resumeLink},  #{resumeUserId},0, now()
+      )
+   </insert>
+
+   <select id="findById" resultType="site.metacoding.humancloud.dto.resume.ResumeRespDto$ResumeFindById">
+      SELECT * FROM resume WHERE resume_id=#{resumeId}
+   </select>
+
+   <update id="update">
+    UPDATE resume SET 
+    resume_title = #{resumeTitle}, resume_education =#{resumeEducation}, 
+    resume_career = #{resumeCareer}, resume_photo = #{resumePhoto}, resume_link = #{resumeLink}
+    WHERE resume_id = #{resumeId}
+  </update>
+
+   <delete id="deleteById">
+		DELETE FROM resume WHERE resume_id=#{resumeId}
+	</delete>
+
+   <delete id="deleteByUserId">
+		DELETE FROM resume WHERE resume_user_id=#{userId}
+	</delete>
+
+</mapper>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="site.metacoding.humancloud.domain.apply.ApplyDao">
+	<insert id="save" useGeneratedKeys="true" keyProperty="applyId">
+		INSERT INTO apply(
+		apply_recruit_id, apply_resume_id, apply_created_at
+      	)
+      	VALUES(
+      	#{applyRecruitId}, #{applyResumeId}, now()
+      	)
+	</insert>
+	<select id="findById" resultType="site.metacoding.humancloud.domain.apply.Apply"></select>
+	<select id="findAll" resultType="site.metacoding.humancloud.domain.apply.Apply"></select>
+	<update id="update"></update>
+	<delete id="deleteById">
+		DELETE FROM apply WHERE apply_recruit_id = #{recruitId} and apply_resume_id =#{resumeId} 
+	</delete>
+</mapper>

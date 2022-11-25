@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="site.metacoding.humancloud.domain.category.CategoryDao">
+
+	<delete id="deleteByResumeId">
+		delete from category where category_resume_id=#{categoryResumeId}
+	</delete>
+
+	<delete id="deleteByRecruitId">
+		delete from category where category_recruit_id=#{categoryRcruitId}
+	</delete>
+
+	<select id="distinctName" resultType="String">
+		select distinct(category_name) from category
+	</select>
+
+	<select id="findByCompanyCategory" resultType="site.metacoding.humancloud.domain.company.Company">
+		select company.* from company
+		left join category
+		on resume.resume_id=category.category_resume_id
+		where category_name=#{categoryName}
+	</select>
+
+
+	<select id="findByRecruitId" resultType="site.metacoding.humancloud.domain.category.Category">
+		select * from category where category_recruit_id=#{recruitId}
+	</select>
+
+	<select id="findByResumeId" resultType="site.metacoding.humancloud.dto.category.CategoryRespDto$CategoryFindByResumeId">
+			select * from category where category_resume_id=#{resuemId}
+	</select>
+
+	<select id="findByName" resultType="site.metacoding.humancloud.dto.category.CategoryRespDto$CategoryFindByName">
+		select category_id, category_resume_id, category_name from category where category_name=#{name}
+	</select>
+
+	<insert id="save">     
+		insert into category(category_resume_id, category_recruit_id, category_name)
+		values (#{categoryResumeId}, #{categoryRecruitId}, #{categoryName})
+	</insert>
+
+	<select id="findById" resultType="site.metacoding.humancloud.domain.category.Category">
+        select * from category where category_id=#{categoryId}
+	</select>
+
+	<select id="findAll" resultType="site.metacoding.humancloud.domain.category.Category">
+        select * from category
+	</select>
+
+	<delete id="deleteById">
+        delete from category where category_id=#{categoryId}
+	</delete>
+
+	<update id="update">
+        update category set category_resume_id=#{resumeId}, category_recruit_id#{recruitId}, category_name=#{companyName}
+        where category_id=#{categoryId}
+	</update>
+</mapper>

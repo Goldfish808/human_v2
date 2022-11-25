@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="site.metacoding.humancloud.domain.recruit.RecruitDao">
+
+	<select id="findByCategoryName" resultType="site.metacoding.humancloud.domain.recruit.Recruit">
+		select r.* from resume r
+		left join category c
+		on r.resume_id=c.category_resume_id
+		where c.category_name='Java'
+		limit 20 offset #{startNum}
+	</select>
+
+	<select id="paging" resultType="site.metacoding.humancloud.dto.PagingDto">
+		SELECT totalCount,
+		totalPage,
+		currentPage,
+		case when currentPage=0 then 1 else 0 end as isFirst,
+		case when currentPage=totalPage-1 then 1 else 0 end as isLast
+		FROM
+		(
+		select count(*) totalCount, ceil(count(*)/20) totalPage, #{page} currentPage, 0
+		isFirst, 0 isLast
+		FROM recruit
+		) b
+	</select>
+	<select id="joinCompanyRecruit" resultType="site.metacoding.humancloud.dto.recruit.RecruitRespDto$CompanyRecruitDtoRespDto">
+		select * from recruit
+		inner join company
+		on recruit.recruit_company_id=company.company_id
+		order by recruit.recruit_created_at desc
+		limit 20 offset #{startNum}
+	</select>
+
+	<select id="orderByrecommend" resultType="site.metacoding.humancloud.domain.recruit.Recruit">
+select recruit.*, result.count from recruit
+left join
+(select *, count(*) count
+from
+(select c2.* from (select category.*
+from
+(select resume.* from resume inner join user
+on user.user_id=resume.resume_user_id
+where user_id=#{userId}) r
+inner join category
+on r.resume_id=category.category_resume_id
+group by category_name) c1
+join (SELECT * FROM category
+WHERE category_recruit_id is not null) c2
+on c1.category_name=c2.category_name) list
+group by category_recruit_id) result
+on recruit.recruit_id=result.category_recruit_id
+order by count DESC
+	</select>
+
+	<select id="orderByCreatedAt" resultType="site.metacoding.humancloud.domain.recruit.Recruit">
+		select *
+		from recruit
+		order by recruit_created_at desc
+	</select>
+
+	<select id="orderByCareer" resultType="site.metacoding.humancloud.domain.recruit.Recruit">
+		select * from recruit order by
+								 (
+									 CASE WHEN ASCII(SUBSTRING(recruit_career,1)) BETWEEN 48 AND 57 THEN 3
+										  WHEN ASCII(SUBSTRING(recruit_career,1))
+		<![CDATA[<]]>
+		123 THEN 2 ELSE 1 END
+									 ), binary(recruit_career)
+	</select>
+	<insert id="save" useGeneratedKeys="true" keyProperty="recruitId">
+		INSERT INTO recruit(recruit_title, recruit_career, recruit_salary, recruit_location, recruit_content, recruit_read_count, recruit_company_id, recruit_deadline, recruit_created_at) 
+		VALUES(#{recruitTitle}, #{recruitCareer}, #{recruitSalary},#{recruitLocation}, #{recruitContent}, 0, #{recruitCompanyId}, NOW(), NOW())
+	</insert>
+
+
+	<select id="findByTitle" resultType="site.metacoding.humancloud.dto.recruit.RecruitRespDto$RecruitDetailRespDto">
+		SELECT * FROM recruit WHERE recruit_title LIKE '%'||#{recruitTitle}||'%'
+	</select>
+	<select id="findById" resultType="site.metacoding.humancloud.dto.recruit.RecruitRespDto$RecruitDetailRespDto">
+		SELECT * FROM recruit
+		LEFT JOIN company
+		ON recruit.recruit_company_id = company.company_id
+		WHERE recruit.recruit_id = #{id}
+	</select>
+	<select id="findByIdyet" resultType="site.metacoding.humancloud.domain.recruit.Recruit">
+		SELECT * FROM recruit
+		WHERE recruit.recruit_id = #{id}
+	</select>
+	<select id="findByCompanyId" resultType="site.metacoding.humancloud.dto.recruit.RecruitRespDto$RecruitListByCompanyIdRespDto">
+		SELECT *
+		FROM recruit WHERE recruit_company_id = #{recruitCompanyId}
+	</select>
+	<select id="findAll" resultType="site.metacoding.humancloud.dto.recruit.RecruitRespDto$RecruitDetailRespDto">
+		select * from recruit
+
+	</select>
+	<update id="update">
+		UPDATE recruit SET 
+		recruit_title = #{recruitTitle},
+		recruit_career = #{recruitCareer},
+		recruit_salary = #{recruitSalary},
+		recruit_location = #{recruitLocation},
+		recruit_content = #{recruitContent},
+		recruit_deadline = #{recruitDeadline}
+		WHERE recruit_id = #{recruitId};
+	</update>
+	<delete id="deleteById">
+		DELETE from recruit where recruit_id=#{recruitId}
+	</delete>
+
+	<delete id="deleteByCompanyId">
+		DELETE from recruit where recruit_company_id=#{recruitCompanyId}
+	</delete>
+	<select id="findByCompanyId2" resultType="site.metacoding.humancloud.dto.company.CompanyRespDto$CompanyMypageRespDto$CompanyRecruitDto">
+		SELECT recruit_title, recruit_read_count, recruit_created_at
+		FROM recruit
+		WHERE recruit_company_id = #{recruitCompanyId}
+	</select>
+</mapper>
